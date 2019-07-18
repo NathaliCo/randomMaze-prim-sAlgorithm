@@ -19,7 +19,7 @@ const initMaze = {
         renderSpace.appendChild( canvas );
 //Calling the RandomMaze class and initMaze object with the properties width and heigth inside like a parameters
         maze = new RandomMaze([initMaze.width,initMaze.heigth],[-(initMaze.width / 2),-(initMaze.heigth/2)]);
-        labery.draw(scene);
+        maze.draw(scene);
         camera.position.z = 30;
 
         let animate = function () {
