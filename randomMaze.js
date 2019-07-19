@@ -1,16 +1,16 @@
 //Class for create a Maze
 class RandomMaze{
 //parameters for the Maze
-    constructor( dimension,referencePoint = [0,0],dimension3D = false,lineWidth = 10,scale = 1){
+    constructor( dimension, referencePoint = [0,0], dimension3D = false, lineWidth = 10, scale = 1){
         //The point where the Maze starts
         this.referencePoint = ({
             x:0,
             y:0
         })
-//In the middle of the canva
+//The init of the canva
         this.referencePoint.x = referencePoint[0];
         this.referencePoint.y = referencePoint[1];
-
+        //name area like an object
         this.dimension = ({
             width:0,
             height:0,
@@ -19,7 +19,7 @@ class RandomMaze{
         this.scale = scale;
 //The size of the Maze
         this.dimension.width = dimension[0];
-        this.dimension.height = dimension[1]
+        this.dimension.height = dimension[1];
 //The init of the path 
         this.initPoint  =  ({
             x:0,
@@ -31,44 +31,39 @@ class RandomMaze{
             y:0
         });
         
-       //Margin = 5
-        if( this.initPoint[0] >= this.referencePoint.x-5)
-            this.initPoint[0] -= 5;
+       //Margin = 2
+        if( this.initPoint[0] >= this.referencePoint.x-2)
+            this.initPoint[0] -= 2;
         // The definition of end point is in the generateLabyrinth function 
-        this.endPoint = []; 
         //dimension3D = false
         this.dimension3D = dimension3D;
         //function for start the Maze
         this.generateMaze();
     }
 //Caracteristics of the lines(walls)
-    draw( scene, materialContour = new THREE.LineBasicMaterial( { color: 0xffffff,linewidth: 3 }),material = new THREE.LineBasicMaterial( { color: 0x3f3f3f,linewidth: this.lineWidth })){
-        // Draw contour 
-        let sidewalls;
-        console.log(this.contour);
-        for(let i = 1; i < this.contour.length; i+=2){
-            //Create the line
-            sidewalls = new THREE.Geometry();
-            sidewalls.vertices.push(new THREE.Vector3( this.referencePoint.x + this.contour[i][1] /*Column-x*/, this.referencePoint.y + this.contour[i][0]/*Row-y*/,this.VAL_Z));  
-            sidewalls.vertices.push(new THREE.Vector3( this.referencePoint.x + this.contour[i-1][1], this.referencePoint.y + this.contour[i-1][0],this.VAL_Z));  
-            scene.add(new THREE.Line( sidewalls, materialContour ))
-        }
-
+    
+draw( scene, contourColor = "#000000",contourWidth =.30, pathColor = "#302f2f",pathWidth=.30){
         
-        for(let i = 0; i < this.pathLab.length; i++){
-            sidewalls = new THREE.Geometry();
-            sidewalls.vertices.push(new THREE.Vector3( this.referencePoint.x + this.pathLab[i][0][1] /*Column-x*/, this.referencePoint.y + this.pathLab[i][0][0]/*Row-y*/,this.VAL_Z));  
-            sidewalls.vertices.push(new THREE.Vector3( this.referencePoint.x + this.pathLab[i][1][1], this.referencePoint.y + this.pathLab[i][1][0],this.VAL_Z));  
-            scene.add(new THREE.Line( sidewalls, material ))
-        }
-
-        console.log("End Draw");
-
-
+    /* Draw contour */
+    var line ;
+    for(let i = 1; i < this.contour.length; i+=2){
+        line  = new three3DExtras.tubeLine([this.referencePoint.x + this.contour[i][1] /*Column-x*/, this.referencePoint.y + this.contour[i][0]/*Row-y*/,this.VAL_Z],[this.referencePoint.x + this.contour[i-1][1], this.referencePoint.y + this.contour[i-1][0],this.VAL_Z],contourWidth,contourColor);
+        scene.add(line.getObject3D());
     }
 
+    
+    for(let i = 0; i < this.pathLab.length; i++){
+        line  = new three3DExtras.tubeLine([this.referencePoint.x + this.pathLab[i][0][1] /*Column-x*/, this.referencePoint.y + this.pathLab[i][0][0]/*Row-y*/,this.VAL_Z],[this.referencePoint.x + this.pathLab[i][1][1], this.referencePoint.y + this.pathLab[i][1][0],this.VAL_Z],pathWidth,pathColor);
+        scene.add(line.getObject3D());
+    }
+
+    console.log("Fin de dibujado");
+
+
+}
+
     generateAdjacentNodes( posNode ){
-        /** PARAM PosNode ---> Array [x --> Column,y ---> Row] */
+        // PARAM PosNode ---> Array [y ---> Row, x --> Column] 
 
         //Get the nodes and genere the Adjacent Nodes of each one like a central node 
         let list = [];
@@ -84,19 +79,16 @@ class RandomMaze{
             list.push([posNode[0]/*Row*/,posNode[1]+1/*Column*/,weight]); 
             //Add the to the matrix the node and their adyacents.
             this.matrixWei[posNode[0]][posNode[1]+1].push([posNode[0],posNode[1],weight]); //Add the same value in the rigth node 
-            
+            //If the node is in the bottom corner 
             if( posNode[0] == 0){
-                //If the node is in the bottom contour
                 weight = Math.random();
-                //Top
                 list.push([posNode[0]+1,posNode[1],weight]); 
                 this.matrixWei[posNode[0]+1][posNode[1]].push([posNode[0],posNode[1],weight]); //Add the same value in the top node 
-
-            }else if( posNode[0] == this.dimension.height-1){
-                // If is in the top contour 
-
+            // If is in the top corner
+            }else if( posNode[0] == this.dimension.height-1){ 
+            //bottom node not 
             }else{
-                // If is in the rigth contour
+                // not in the corner
                 weight = Math.random();
                 //Top
                 list.push([posNode[0]+1,posNode[1],weight]); 
@@ -104,8 +96,9 @@ class RandomMaze{
                  /* This value is definite in other node */
 
             }
+             /* Is in the right contour */
         }else if( posNode[1] ==  this.dimension.width -1 ){
-            /* Is in the right contour */
+           
 
             if( posNode[1] == 0){
                 /* Is in the bottom contour*/
@@ -115,7 +108,7 @@ class RandomMaze{
                 this.matrixWei[posNode[0]+1][posNode[1]].push([posNode[0],posNode[1],weight]); //Add the same value in the top node 
 
 
-            }else if( posNode[0]  == this.dimension.height-1){
+        }else if( posNode[0]  == this.dimension.height-1){
                 /* Is in the top contour */
 
             }else{
@@ -156,20 +149,18 @@ class RandomMaze{
             list.push([posNode[0]/*Row*/,posNode[1]+1/*Column*/,weight]); //Rigth
             this.matrixWei[posNode[0]][posNode[1]+1].push([posNode[0],posNode[1],weight]); //Add the same value in the rigth node 
         }
-
         return list;
     }
 
     generateMaze(){
         // Make aleatory Maze 
-
         const VAL_Z = this.dimension3D == true? 5:0;
         this.contour = [];
 
-        //Contour of Labyrinth 
+        //Contour of Maze
 //Get the init random point of the path 
         this.initPoint.x = Math.floor(Math.random() * this.dimension.width);
-        this.initPoint.y = Math.floor(0);
+        this.initPoint.y = 0;
         /* Bottom Line */      
         if( this.initPoint.x == 0 )
             this.initPoint.x ++;
@@ -186,6 +177,7 @@ class RandomMaze{
         let sideOfEnd = Math.random() * 3;
 
         /* Other Lines */
+        //left
         if( sideOfEnd < 1)
         {   
             /*Define the end point*/
@@ -272,8 +264,6 @@ class RandomMaze{
                 this.matrixWei[i][j] = new Array();
         }
             
-
-        
         for(let i = 0; i < this.dimension.height ;i++){
             for( let j = 0 ; j < this.dimension.width;j++){
                 this.matrixWei[i][j] = this.matrixWei [i][j].concat(this.generateAdjacentNodes([i,j]));
@@ -281,25 +271,21 @@ class RandomMaze{
         }
 
         this.prims();
-
     }
      prims( ) {
 
         // arbitrarily choose initial vertex from graph
         let nodo = [0 ,0];/*Row*/ /*Column*/
     
-
-        // initialize empty edges array and empty MST
-        let MST = [];
+        // initialize empty edges array and empty MET
+        let MET = [];
         let edges = [];
         let minEdge = [null , [null,null, Infinity]];
         let visited = [];
         
-
-    
-        // run prims algorithm until we create an MST
+        // run prims algorithm until we create an MET
         // that contains every vertex from the graph
-        while (MST.length < this.dimension.width * this.dimension.height -1) {
+        while (MET.length < this.dimension.width * this.dimension.height -1) {
 
 
             // mark this vertex as visited
@@ -309,7 +295,6 @@ class RandomMaze{
             let len = this.matrixWei[nodo[0]][nodo[1]].length;
             for (var r = 0; r < len ; r++) {
                 if(visited.indexOf(this.matrixWei[nodo[0]][nodo[1]][r][0] + " " + this.matrixWei[nodo[0]][nodo[1]][r][1]) == -1){
-                    // console.log("PUSH: "+ this.matrix_wei[nodo[0]][nodo[1]][r][0] + " " + this.matrix_wei[nodo[0]][nodo[1]][r][1]);
                     edges.push([[nodo[0],nodo[1]],this.matrixWei[nodo[0]][nodo[1]][r]]); 
                 }
                 /* Two Arrays  First --> Origin Node[x,y]  Second ---> Final Node[x,y,weigth] */
@@ -318,7 +303,6 @@ class RandomMaze{
             // find edge with the smallest weight to a vertex
             // that has not yet been visited
             for (var e = 0; e < edges.length; e++) {
-                // console.log(edges[1]);
                 if (edges[e][1][2] < minEdge[1][2] && visited.indexOf(edges[e][1][0]+" "+edges[e][1][1]) == -1) {
                     minEdge = edges[e];
                 }else{
@@ -326,25 +310,15 @@ class RandomMaze{
             }
     
             // remove min weight edge from list of edges
-            // console.log("Antes: " + edges.length);
             edges.splice(edges.indexOf(minEdge), 1);
-            // console.log("Despues: " + edges.length);
-            
-            // push min edge to MST
-            MST.push(minEdge);
-            
-            // console.log(MST.length);
-            // start at new vertex and reset min edge
+ 
+        MET.push(minEdge);
 
             nodo = [minEdge[1][0],minEdge[1][1]];
             minEdge = [null , [null,null, Infinity]];
         }
     
-        this.pathLab = MST;
-        // console.log("MATRIZ DE PESO:");
-        // console.log(this.matrix_wei);
-        // console.log("Path:");
-        // console.log(this.path_lab );
+        this.pathLab =MET;
     }
 
    
